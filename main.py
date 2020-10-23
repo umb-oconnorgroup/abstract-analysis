@@ -206,8 +206,12 @@ def visualize(m, show_emb=True):
 
     m.eval()
 
-    queries = ['andrew', 'computer', 'sports', 'religion', 'man', 'love', 
-                'intelligence', 'money', 'politics', 'health', 'people', 'family']
+    # queries = ['andrew', 'computer', 'sports', 'religion', 'man', 'love', 
+    #             'intelligence', 'money', 'politics', 'health', 'people', 'family']
+
+    # queries = ['biology', 'gene', 'calling', 'cancer', 'experiment']
+
+    queries = ['biology']
 
     ## visualize topics using monte carlo
     with torch.no_grad():

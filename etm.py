@@ -88,7 +88,11 @@ class ETM(nn.Module):
             q_theta = self.t_drop(q_theta)
         mu_theta = self.mu_q_theta(q_theta)
         logsigma_theta = self.logsigma_q_theta(q_theta)
-        kl_theta = -0.5 * torch.sum(1 + logsigma_theta - mu_theta.pow(2) - logsigma_theta.exp(), dim=-1).mean()
+        # kl_theta = -0.5 * torch.sum(1 + logsigma_theta - mu_theta.pow(2) - logsigma_theta.exp(), dim=-1).mean()
+        # Roland changed the prior on theta to have less variance, so that the document topic distribution will be less sparse
+        variance = .025 * torch.ones(1, device=self.rho.device)
+        kl_theta = -0.5 * torch.sum(1 + logsigma_theta - torch.log(variance) - (1. / variance) * mu_theta.pow(2) - (1. / variance) * logsigma_theta.exp(), dim=-1).mean()
+        #
         return mu_theta, logsigma_theta, kl_theta
 
     def get_beta(self):
@@ -96,7 +100,11 @@ class ETM(nn.Module):
             logit = self.alphas(self.rho.weight) # torch.mm(self.rho, self.alphas)
         except:
             logit = self.alphas(self.rho)
-        beta = F.softmax(logit, dim=0).transpose(1, 0) ## softmax over vocab dimension
+        # beta = F.softmax(logit, dim=0).transpose(1, 0) ## softmax over vocab dimension
+        # Roland added a multiplicative factor to the logit to induce more sparsity in the distribution over words
+        factor = .6 * torch.ones(1, device=self.rho.device)
+        beta = F.softmax(factor * logit, dim=0).transpose(1, 0) ## softmax over vocab dimension
+        #
         return beta
 
     def get_theta(self, normalized_bows):
